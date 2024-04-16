@@ -9,6 +9,7 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Paint")
 clock = pygame.time.Clock()
 
+#All shapes
 rectangular = pygame.Rect(10, 10, 20, 10)
 circle_radius = 10
 circle_center = (50, 20)
@@ -25,11 +26,11 @@ shape = "rectangular"
 eraser = pygame.image.load("eraser.png")
 eraser_rect = eraser.get_rect()
 eraser_rect.center = (1050, 15)
-isClear = True
-do_draw = False
-drawings = []
 
-# Handler
+do_draw = False
+drawings = []  #The "memory" of Paints.
+
+# Handler of events
 def handler():
     global pos, do_draw
     for event in pygame.event.get():
@@ -46,6 +47,7 @@ def handler():
             do_draw = False
     return True
 
+#Draw menu
 def menu():
     pygame.draw.aaline(screen, "black", (0, 40), (1200, 40))
     pygame.draw.rect(screen, "black", rectangular)
@@ -78,12 +80,14 @@ def choose_color(pos):
     if eraser_rect.collidepoint(pos):
         color = "white"
 
+#After choosing color and shape, show it to the up middle point of the screen.
 def active(color, shape):
     if shape == "rectangular":
         pygame.draw.rect(screen, color, (600, 10, 20, 10))
     elif shape == "circle":
         pygame.draw.circle(screen, color, (605, 18), 10)
 
+#Drawing function. Take the active color and shape as arguments.
 def drawing(color, shape, pos = pos):
     if pos[1] > 40:
         if shape == "rectangular":
