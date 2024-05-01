@@ -1,5 +1,30 @@
 import pygame
 import random, time
+import psycopg2
+
+
+connection = psycopg2.connect(user="postgres",
+                                  password="root",
+                                  host="127.0.0.1",
+                                  port="5432",
+                                  database="snake")
+
+
+def get_user_info(connection, username):
+    with connection.cursor() as cur:
+        cur.execute("SELECT level, score FROM users WHERE username = %s", (username,))
+        result = cur.fetchone()
+        if result is None:
+            cur.execute("INSERT INTO users (username, level, score) VALUES (%s, 0, 0)", (username,))
+            connection.commit()
+            return {"level": 0, "score": 0}
+        else:
+            return {"level": result[0], "score": result[1]}
+
+def set_new_score(connection, username):
+    with connection.cursor() as cur:
+        cur.execute(f'''UPDATE users SET score = {s.score}, level = {LEVEL} WHERE username = '{username}';''')
+        connection.commit()
 
 pygame.init()
 running = True
@@ -8,7 +33,14 @@ FPS = 60
 RED = (255, 0, 0)
 BLACK = (0, 0, 0)
 BLUE = (0, 0, 255)
+
 LEVEL = 0
+
+username = input("Введите ваше имя пользователя: ")
+user_info = get_user_info(connection, username)
+
+HIGHLEVEL = user_info["level"]
+HIGHSCORE = user_info["score"]
 
 font = pygame.font.SysFont("Verdana", 20)
 game_over = font.render("Game Over", True, BLACK)
@@ -35,7 +67,7 @@ def check_collision(x,y):
         screen.blit(game_over, (550,400))
         scoretag = font.render("Your score: "+str(s.score), True, BLACK)
         screen.blit(scoretag, (550,500))
-
+        set_new_score(connection, username)
         pygame.display.update()
 
         time.sleep(2)
@@ -139,12 +171,19 @@ while running:
     clock.tick(FPS)
     running = handler()
     screen.fill(BLACK)
+
     pygame.draw.aaline(screen, BLUE, [0, 40], [1200, 40])
     
     scoretag = font.render("Score: "+str(s.score), True, (0, 255, 0))
     leveltag = font.render("Level: "+str(LEVEL), True, (0, 255, 0))
+    highscoretag = font.render("Highest Score: "+str(HIGHSCORE), True, (0, 255, 0))
+    highleveltag = font.render("Highest Level: "+str(HIGHLEVEL), True, (0, 255, 0))
+    
     screen.blit(scoretag, (10,10))
     screen.blit(leveltag, (1100, 10))
+    screen.blit(highscoretag, (110,10))
+    screen.blit(highleveltag, (900, 10))
+    
 
     
 
